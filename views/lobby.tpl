@@ -32,9 +32,8 @@ function refresh() {
 setTimeout(refresh, 1000);
 </script>
 %if game.name:
-
-%end
 <h1>{{game.name}}</h1>
+%end
 <h2>Welcome {{player.name}}</h2>
 <div class="gp flav">
 
