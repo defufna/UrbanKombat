@@ -28,13 +28,26 @@ span.m {
     padding: 4px;
 }
 
-input.m {
+input.m, button.m {
     color: #c00;
     background: #fff;
     padding: 2px 0px;
     margin: 0px;
     font-size: 80%;
     border-width: 2px
+}
+
+div.logo{
+    text-align: center;
+}
+
+div.wrap{
+    max-width:900px;
+    margin:0 auto;
+}
+
+button.marg {
+    margin: 2px;
 }
 
 input.md {

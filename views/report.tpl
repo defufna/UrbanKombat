@@ -13,4 +13,10 @@
 		%end
 		</ul>
 	</p>
+	<p>
+	    <strong>
+	        You can share this report with others by copying the url,
+	        but note that it won't live forever, older reports are deleted.
+	    </strong>
+	</p>
 </div>
