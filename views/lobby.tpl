@@ -38,13 +38,19 @@ setTimeout(refresh, 1000);
 <h2>Welcome {{player.name}}</h2>
 <div class="gp flav">
 
-    <p>Here you can invite players to the game. The game will start once all players have clicked ready</p>
+    <p>Here you can invite players to the game. The game will start once all players have clicked ready.
+    %if len(game.players) == 1:
+    	The button will appear, once someone joins the game.
+    %end
+    </p>
     <%
         for team in ["A", "B"]:
             include("team_invite.tpl", team=team)
         end
     %>
+%if len(game.players) > 1:
     <form action="ready" method="post">
         <button>Ready</button>
     </form>
+%end
 </div>

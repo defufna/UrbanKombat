@@ -842,7 +842,7 @@ class Game:
 
     @synchronized
     def player_ready(self, id):
-        if self.state == WAITING:
+        if self.state == WAITING and len(self.players) > 1:
             player = self.try_get(id)
 
             if player is None:
