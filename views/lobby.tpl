@@ -31,12 +31,13 @@ function refresh() {
 }
 setTimeout(refresh, 1000);
 </script>
-%if game.name:
-<h1>{{game.name}}</h1>
-%end
-<h2>Welcome {{player.name}}</h2>
-<div class="gp flav">
 
+<div class="gp">
+    %if game.name:
+    <h1>{{game.name}}</h1>
+    %end
+    <h2>Welcome {{player.name}}</h2>
+    
     <p>Here you can invite players to the game. The game will start once all players have clicked ready.
     %if len(game.players) == 1:
     	The button will appear, once someone joins the game.
@@ -47,9 +48,9 @@ setTimeout(refresh, 1000);
             include("team_invite.tpl", team=team)
         end
     %>
-%if len(game.players) > 1:
-    <form action="ready" method="post">
-        <button>Ready</button>
-    </form>
-%end
+    %if len(game.players) > 1:
+        <form action="ready" method="post">
+            <button class="m">Ready</button>
+        </form>
+    %end
 </div>

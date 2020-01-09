@@ -5,9 +5,15 @@
 <ul>
 %for player in game.team(team):
     <li>{{player.name}}\\
-%if player.ready:
+    %if player.ready:
  ✓
-%end
-</li>
+    %end
+    %if host and player is not game.host:
+        <form action="kick" method="post">
+            <input type="hidden" name="player_id" value="{{player.id}}">
+            <button class="m">Kick</button>
+        </form>
+    %end
+    </li>
 %end
 </ul>

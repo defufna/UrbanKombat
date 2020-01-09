@@ -4,7 +4,7 @@ import ud
 import threading
 import random
 
-bottle.DEBUG = True
+bottle.debug(True)
 
 class SessionManager:
     def __init__(self):
@@ -144,6 +144,7 @@ def lobby(session, game):
     state_str, ready, player_count = game.status
     return {"player":player, "game":game, 
             "state":state_str, "ready": ready, "player_count":player_count,
+            "host":player is game.host,
             "server_name": "://".join(bottle.request.urlparts[:2])}
 
 @bottle.route("/<id>/map.cgi", method=["GET", "POST"])
@@ -180,7 +181,7 @@ def game(session, game):
 @get_game
 def report(session, game):
     if game.state != ud.FINISHED:
-        return bottle.abort("This game is not finished")
+        return bottle.abort(500, "This game is not finished")
 
     result = {"name":game.name}
 
@@ -212,6 +213,21 @@ def ready(session, game):
 
     return bottle.redirect("lobby")
 
+@bottle.post("/<id>/kick")
+@session
+@get_game
+def kick(session, game):
+    if "player_id" not in bottle.request.forms:
+        return bottle.abort(500, "Player to kick is not specified")
+
+    player_id = bottle.request.forms["player_id"]
+    try:
+        game.player_kick(session, player_id)
+    except ValueError as e:
+        return bottle.abort(500, e.args[0])
+
+    return bottle.redirect("lobby")
+
 @bottle.get("/<id>/status")
 @session
 @get_game
@@ -219,6 +235,12 @@ def status(session, game):
     bottle.response.content_type = "application/json"
     status = game.status
     return "[\"{}\", {}, {}]".format(*status)
+
+@bottle.error(404)
+@bottle.error(500)
+@bottle.view("error")
+def display_error(error):
+    return {"request":bottle.request, "e":error, "DEBUG":bottle.DEBUG} 
 
 @bottle.route("/static/<filename>")
 def serve_static(filename):

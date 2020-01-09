@@ -856,6 +856,28 @@ class Game:
                     self.start_time = datetime.datetime.utcnow() + datetime.timedelta(seconds=2)
 
     @synchronized
+    def player_kick(self, host_id, player_id):
+        host_id = int(host_id)
+        player_id = int(player_id)
+
+        host = self.try_get(host_id)
+        if host is None or host is not self.host:
+            raise ValueError("Invalid host_id")
+
+        player = self.try_get(player_id)
+        
+        if player is None:
+            raise ValueError("Invalid player_id")
+
+        if player is host:
+            raise ValueError("You can't kick yourself")
+
+        del self.players[player.id]
+
+        if isinstance(player, Zombie):
+            self.zombies -= 1
+
+    @synchronized
     def team(self, team_name):
         return [player for player in self.players.values() if player.team == team_name]
 
