@@ -68,7 +68,7 @@ def create_game_form():
 
 import time
 
-@bottle.get("/<id>/create_char")
+@bottle.get("/<id>")
 @bottle.post("/<id>/create_char")
 @session
 @get_game
@@ -79,18 +79,16 @@ def create_char(session, game):
         if player is not None:
             return bottle.redirect("/{:x}/lobby".format(game.id))
 
-        if bottle.request.method == "GET":
-            team = bottle.request.query.get("team")
-            if team is None:
-                return bottle.abort(500, "Missing team id")
-            
-            return bottle.template("create_char_page", team=team)
+        if bottle.request.method == "GET":            
+            return bottle.template("create_char_page", game=game)
         
         if bottle.request.method == "POST":
             form = bottle.request.forms
             team = form.get("team")
             if team is None:
                 return bottle.abort(500, "Missing team id")
+            if team not in game.teams:
+                return bottle.abort(500, "Invalid team")
 
             name = form.get("char_name")
             char_cls = form.get("cls")
@@ -134,7 +132,7 @@ def lobby(session, game):
     
     if player is None: 
         if state == ud.WAITING:
-            return bottle.abort(500, "You need to join game first")
+            return bottle.redirect("/{:x}".format(game.id))
         else:
             return bottle.abort(500, "This game has already started and can't be joined")
 

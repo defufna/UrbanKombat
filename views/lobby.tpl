@@ -37,14 +37,16 @@ setTimeout(refresh, 1000);
     <h1>{{game.name}}</h1>
     %end
     <h2>Welcome {{player.name}}</h2>
-    
+
     <p>Here you can invite players to the game. The game will start once all players have clicked ready.
     %if len(game.players) == 1:
     	The button will appear, once someone joins the game.
     %end
     </p>
+
+    <p>To invite people use: <a href="{{server_name}}/{{format(game.id, "x")}}">{{server_name}}/{{format(game.id, "x")}}</a></p>
     <%
-        for team in ["A", "B"]:
+        for team in game.teams:
             include("team_invite.tpl", team=team)
         end
     %>

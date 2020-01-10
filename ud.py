@@ -652,6 +652,10 @@ class Game:
         self.victory_status = None
 
     @property
+    def teams(self):
+        return ("A", "B")
+
+    @property
     @synchronized
     def state(self):
         if self.start_time is None:

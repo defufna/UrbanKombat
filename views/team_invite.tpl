@@ -1,19 +1,43 @@
-<p>To invite people to Team {{team}} use: <a href="{{server_name}}/{{format(game.id, "x")}}/create_char?team={{team}}">{{server_name}}/{{format(game.id, "x")}}/create_char?team={{team}}</a></p>
+<table class="team">
+    <thead>
+        <tr>
 
-<p>Team {{team}}</p>
+            <th colspan="4">
+                Team {{team}}
+            </th>
+        </tr>
+        <tr>
+            <th>Name</th>
+            <th>Class</th>
+            <th>Ready</th>
+            %if get("host", False):
+            <th>Kick</th>
+            %end
+        </tr>
+    </thead>
+    <tbody>
+    %for player in game.team(team):
+        <tr>
+        <td>{{player.name}}</td>
+        <td>{{type(player).__name__}}</td>
+        <td>
+        %if player.ready:
+    ✓
+        %end
+        </td>    
+        %if get("host", False):
+        <td>
+            %if player is not game.host:
+            <form action="kick" method="post">
 
-<ul>
-%for player in game.team(team):
-    <li>{{player.name}}\\
-    %if player.ready:
- ✓
+                <input type="hidden" name="player_id" value="{{player.id}}">
+                <button class="m">Kick</button>
+            </form>
+            %end
+        </td>
+        %end
+        </tr>
     %end
-    %if host and player is not game.host:
-        <form action="kick" method="post">
-            <input type="hidden" name="player_id" value="{{player.id}}">
-            <button class="m">Kick</button>
-        </form>
-    %end
-    </li>
-%end
-</ul>
+    </tbody>
+</table>
+
