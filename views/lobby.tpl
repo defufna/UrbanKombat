@@ -1,6 +1,6 @@
 % rebase('base.tpl', title='Lobby')
 <script type="text/javascript">
-var data = ["{{state}}", {{ready}}, {{player_count}}];
+var data = ["{{state}}", {{lobby_version}}];
 
 function refresh() {
     var request = new XMLHttpRequest();
@@ -13,7 +13,7 @@ function refresh() {
             if(new_data[0] != "WAITING"){
                 window.location.href = "./map.cgi";
             }
-            if(new_data[1] != data[1] || new_data[2] != data[2]){
+            if(new_data[1] != data[1]){
                 window.location.reload(true);
             }
 
@@ -45,6 +45,16 @@ setTimeout(refresh, 1000);
     </p>
 
     <p>To invite people use: <a href="{{server_name}}/{{format(game.id, "x")}}">{{server_name}}/{{format(game.id, "x")}}</a></p>
+
+    <div>
+        To switch teams click here: 
+        
+        <form action="switch" method="post">
+            <button class="m" type="submit">Switch teams</button>
+        </form>
+    </div>
+
+
     <%
         for team in game.teams:
             include("team_invite.tpl", team=team)

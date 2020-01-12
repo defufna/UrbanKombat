@@ -5,7 +5,8 @@
     </div>
     <div class="gp flav">
         <p>Urban Kombat is <a href="http://www.urbandead.com">Urban Dead</a> clone, focused on real time combat. You can use it for a quick UD showdown.</p>
-        <p>The game is open source and source can be found on <a href="https://github.com/defufna/UrbanKombat">github</a></p>
+        <p>The game is open source and source can be found on <a href="https://github.com/defufna/UrbanKombat">github</a>.</p>
+        <p>Server has been running for {{running}}, and has served {{games_created}} games</p>
     </div>
     <div class="gp flav">
         <strong>Create Game</strong>

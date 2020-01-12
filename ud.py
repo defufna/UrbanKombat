@@ -650,6 +650,7 @@ class Game:
         self.finished = False
         self.zombies = 0
         self.victory_status = None
+        self.lobby_version = 0
 
     @property
     def teams(self):
@@ -684,7 +685,7 @@ class Game:
     @property
     @synchronized
     def status(self):
-        return (self.state_str, self.ready, len(self.players))
+        return (self.state_str, self.lobby_version)
 
     @synchronized
     def do(self, session, action=None, target=None):
@@ -842,6 +843,7 @@ class Game:
             self.zombies += 1
 
         self.players[id] = player
+        self.lobby_version += 1
         return player
 
     @synchronized
@@ -852,8 +854,13 @@ class Game:
             if player is None:
                 raise ValueError("Invalid id")
 
+            for team in self.teams:
+                if len(self.team(team)) == 0:
+                    raise ValueError("Team {} is empty".format(team))
+
             if not player.ready:
-                player.ready = True
+                player.ready = True                
+                self.lobby_version += 1
                 self.ready += 1
 
                 if self.ready == len(self.players):
@@ -877,9 +884,22 @@ class Game:
             raise ValueError("You can't kick yourself")
 
         del self.players[player.id]
+        self.lobby_version += 1
 
         if isinstance(player, Zombie):
             self.zombies -= 1
+
+    @synchronized
+    def player_switch(self, player_id):
+        player_id = int(player_id)
+        player = self.try_get(player_id)
+
+        if player is None:
+            raise ValueError("Invalid player_id")
+
+        team = player.team
+        player.team = self.teams[(self.teams.index(team)+1)%len(self.teams)]
+        self.lobby_version += 1
 
     @synchronized
     def team(self, team_name):
@@ -906,6 +926,7 @@ class GameCollection:
         self.ordered_games = []
         self.lock = threading.RLock()
         self.max_games = max_games
+        self.games_created = 0
 
     @synchronized
     def __contains__(self, id):
@@ -931,6 +952,7 @@ class GameCollection:
         if len(self.ordered_games) > self.max_games:
             self._cleanup()
 
+        self.games_created += 1
         return game
 
     def _get_id(self):

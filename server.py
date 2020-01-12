@@ -4,7 +4,21 @@ import ud
 import threading
 import random
 
+import datetime
+
+start_time = datetime.datetime.now()
+
 bottle.debug(True)
+
+def pretty_delta(delta):
+    seconds = round(delta.total_seconds())
+    minutes, seconds = divmod(seconds, 60)
+    hours, minutes = divmod(minutes, 60)
+    days, hours = divmod(hours, 24)
+
+    result = ((days, "days"), (hours, "hours"), (minutes, "min"), (seconds, "sec"))
+
+    return " ".join("{}{}".format(value, name) for (value, name) in result if value > 0)
 
 class SessionManager:
     def __init__(self):
@@ -64,7 +78,13 @@ def get_game(func):
 @bottle.route("/")
 @bottle.view("create_game")
 def create_game_form():
-    return {}
+    global start_time
+    global games
+
+    return {
+        "running":pretty_delta(datetime.datetime.now() - start_time),
+        "games_created":games.games_created
+    }    
 
 import time
 
@@ -139,9 +159,9 @@ def lobby(session, game):
     if state != ud.WAITING:
         return bottle.redirect("/{:x}/map.cgi".format(game.id))
 
-    state_str, ready, player_count = game.status
+    state_str, lobby_version = game.status
     return {"player":player, "game":game, 
-            "state":state_str, "ready": ready, "player_count":player_count,
+            "state":state_str, "lobby_version":lobby_version,
             "host":player is game.host,
             "server_name": "://".join(bottle.request.urlparts[:2])}
 
@@ -226,13 +246,25 @@ def kick(session, game):
 
     return bottle.redirect("lobby")
 
+@bottle.post("/<id>/switch")
+@session
+@get_game
+def switch(session, game):
+    try:
+        game.player_switch(session)
+    except ValueError as e:
+        return bottle.abort(500, e.args[0])
+
+    return bottle.redirect("lobby")
+
+
 @bottle.get("/<id>/status")
 @session
 @get_game
 def status(session, game):
     bottle.response.content_type = "application/json"
     status = game.status
-    return "[\"{}\", {}, {}]".format(*status)
+    return "[\"{}\", {}]".format(*status)
 
 @bottle.error(404)
 @bottle.error(500)

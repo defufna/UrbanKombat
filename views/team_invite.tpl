@@ -16,7 +16,11 @@
         </tr>
     </thead>
     <tbody>
-    %for player in game.team(team):
+    %players = game.team(team)
+    %if len(players) == 0:
+        <p class="warning">Warning team {{team}} is empty</p>
+    %end
+    %for player in players:
         <tr>
         <td>{{player.name}}</td>
         <td>{{type(player).__name__}}</td>

@@ -5,7 +5,8 @@
 	<h1>{{name}}</h1>
 %end
 	<h2>{{title}}</h2>
-	<p>
+	<a href="/">Create new game</a>
+	<p>		
 		<strong>Game report:</strong>
 		<ul>
 		%for event in events:

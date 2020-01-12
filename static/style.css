@@ -4,6 +4,11 @@ body {
     font-family: trebuchet ms, verdana
 }
 
+.warning{
+    color: #f99;
+    font-weight: bold;
+}
+
 table.team{
     margin: 10px;
 }
