@@ -701,6 +701,8 @@ class Game:
         player = self.players[session]
         result = {"name":player.name}
 
+        is_zombie = isinstance(player, Zombie)
+
         message = None
         
         if target is not None:
@@ -740,18 +742,31 @@ class Game:
         
         result["health"] = player.health
         result["ap"] = player.ap
+        result["team"] = player.team
 
         result["humans"] = [other for other in self.players.values() if other is not player and not other.dead and isinstance(other, Human)]
-        result["zombies"] = self.zombies
+        (result["zombies"], result["same_team_zombies"]) = self._get_zombies(player)
 
-        result["dead"] = player.dead or isinstance(player, Zombie)
+        result["dead"] = player.dead or is_zombie
         result["attacks"] = player.available_attacks
 
-        result["is_zombie"] = isinstance(player, Zombie)
-        result["player_id"] = player.id
+        result["is_zombie"] = is_zombie
+        result["player_id"] = player.id        
 
         return DoResult(self.state == FINISHED, result)
-    
+
+    def _get_zombies(self, player):
+        same_team_zombies = 0
+        zombies = []
+
+        for z in self.players.values():
+            if isinstance(z, Zombie) and z is not player and not z.dead:
+                if z.team == player.team:
+                    same_team_zombies += 1
+                zombies.append(z)
+
+        return (zombies, same_team_zombies)
+            
     def _check_if_finished(self):
         assert self.state == STARTED
 

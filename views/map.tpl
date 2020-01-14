@@ -31,9 +31,12 @@
                             <a href="#" class="f1">{{player.name}}</a>   
                         %end
                     %end
-                    %if zombies > 0:
+                    %if len(zombies) > 0:
                         <br>
-                        <span class="fz">{{zombies}} zombies</span>
+                        <span class="fz">{{len(zombies)}} zombie\\
+%if len(zombies) > 1:
+s</span>
+%end
                     %end
                     </td>             
                     <td class="b cx">
@@ -87,7 +90,13 @@
             <div class="gt">You are inside <b>Hildebrand Mall</b>. Trails of looted debris litter the floors and
                 escalators. The building has been quite strongly barricaded. Also here is              
 %for last,player in detect_last(humans):
-<a href="#">{{player.name}}</a> \\
+<a href="#" class="\\
+%if player.team == team:
+con5\\
+%else:
+con2\\
+%end
+">{{player.name}}</a> \\
     %if player.health != 60:
 <span class="trg">\\
     %end
@@ -103,8 +112,9 @@
 %end
 <br><br>A portable generator has been set up here. It is running.
                 <br><br>Somebody has spraypainted <i>death to fascism, freedom to the people</i> onto a wall.\\
-                %if zombies > 0:
-<br><br>There are {{count(zombies)}} zombies here.\\
+                %if len(zombies) > 0:
+<br><br>\\
+    %include("zombies.tpl")
 %end
 </div>\\
 %if len(since_last_turn) > 0:
@@ -150,7 +160,7 @@
 ({{item.shots}})\\
 %end
 <%
-if item.target and (len(humans) > 0 or zombies > 0):
+if item.target and (len(humans) > 0 or len(zombies) > 0):
     include("target.tpl", include_self=True)
 end
 %>
