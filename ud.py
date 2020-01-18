@@ -4,6 +4,8 @@ import datetime
 import collections
 import itertools
 
+from utils import synchronized, PlayerStack
+
 class Event:
     def __init__(self, source, target):
         self.source = source
@@ -612,15 +614,6 @@ class Human(Player):
             return []
         return self._inventory[name]
     
-def synchronized(f):
-    def wrapper(self, *args, **kwargs):
-        try:
-            self.lock.acquire()
-            return f(self, *args, **kwargs)
-        finally:
-            self.lock.release()
-    return wrapper
-
 WAITING = 0
 READY = 1
 STARTED = 2
@@ -642,13 +635,14 @@ class Game:
         self.id = id
         self.events = EventCollection()
         self.players = {}
+        self.humans = PlayerStack()
+        self.zombies = PlayerStack()
         self.host = None
         self.lock = threading.RLock()
                
         self.ready = 0
         self.start_time = None
         self.finished = False
-        self.zombies = 0
         self.victory_status = None
         self.lobby_version = 0
 
@@ -712,16 +706,12 @@ class Game:
             result["last_target"] = player.last_target
 
         target, message, action = self._resolve_target(target, message, action, player)
-        
-        def update_zombie_count(killed):
-            if isinstance(killed, Zombie):
-                self.zombies -= 1
-
+                
         old_ap = player.ap
         (someone_died, (message, target)) = self._check_killed(
             [x for x in (player, target) if x is not None],
             lambda: self._perform_action(action, player, target),
-            update_zombie_count
+            self._remove_from_stack
         )
 
         ap_spent = player.ap == 0 and old_ap != 0
@@ -744,7 +734,7 @@ class Game:
         result["ap"] = player.ap
         result["team"] = player.team
 
-        result["humans"] = [other for other in self.players.values() if other is not player and not other.dead and isinstance(other, Human)]
+        result["humans"] = [other for other in self.humans if other is not player]
         (result["zombies"], result["same_team_zombies"]) = self._get_zombies(player)
 
         result["dead"] = player.dead or is_zombie
@@ -755,12 +745,25 @@ class Game:
 
         return DoResult(self.state == FINISHED, result)
 
+    def _remove_from_stack(self, player):
+        if isinstance(player, Zombie):
+            self.zombies.remove(player)
+        else:
+            self.humans.remove(player)
+        
+
+    def _update_stack(self, player):
+        if isinstance(player, Zombie):
+            self.zombies.update(player)
+        else:
+            self.humans.update(player)
+
     def _get_zombies(self, player):
         same_team_zombies = 0
         zombies = []
 
-        for z in self.players.values():
-            if isinstance(z, Zombie) and z is not player and not z.dead:
+        for z in self.zombies:
+            if z is not player:
                 if z.team == player.team:
                     same_team_zombies += 1
                 zombies.append(z)
@@ -803,13 +806,18 @@ class Game:
             elif player.health == 0:
                 message = "You can't do that, you are dead."
             elif action.type == USE:
-                if target is None:
-                    target = player
-                message = player.use(action.item, target)
+                if isinstance(player, Human):                                    
+                    if target is None:
+                        target = player
+                    message = player.use(action.item, target)
+                    self._update_stack(player)
+                else:
+                    message = "You can't use items, you are dead."
             elif action.type == ATTACK:
                 if target == None:
                     raise ValueError("Invalid target, attack must specify a target")
                 message = player.attack(action.item, target)
+                self._update_stack(player)
                 player.last_weapon = action.item
 
         return (message, target)
@@ -820,9 +828,9 @@ class Game:
             return (None, message, action)
 
         if target is not None:
-            if target == "z":
-                for player in self.players.values():
-                    if isinstance(player, Zombie) and not player.dead and player != current_player:
+            if target == "z":                
+                for player in self.zombies:
+                    if player != current_player:
                         return (player, message, action)
                 else:
                     return (None, None, "There are no zombies here.")
@@ -852,10 +860,11 @@ class Game:
             player.add_item(clip)
             player.add_item(shell)
             player.add_item(shell)
+            self.humans.update(player)
         else:
             assert cls == "Zombie"
             player = Zombie(id, name, team, self.events)
-            self.zombies += 1
+            self.zombies.update(player)
 
         self.players[id] = player
         self.lobby_version += 1
@@ -898,6 +907,7 @@ class Game:
         if player is host:
             raise ValueError("You can't kick yourself")
 
+        self._remove_from_stack(self.players[player.id])
         del self.players[player.id]
         self.lobby_version += 1
 

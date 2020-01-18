@@ -5,6 +5,7 @@ import threading
 import random
 
 import datetime
+from utils import synchronized
 
 start_time = datetime.datetime.now()
 
@@ -25,7 +26,7 @@ class SessionManager:
         self.sessions = set()
         self.lock = threading.Lock()
     
-    @ud.synchronized
+    @synchronized
     def create_session(self):
         id = 0
         while True:
@@ -36,7 +37,7 @@ class SessionManager:
         self.sessions.add(id)
         return id
 
-    @ud.synchronized
+    @synchronized
     def __contains__(self, id):
         return id in self.sessions
 
