@@ -87,43 +87,45 @@ def create_game_form():
         "games_created":games.games_created
     }    
 
-import time
+@bottle.route("/static/<filename>")
+def serve_static(filename):
+    return bottle.static_file(filename, root=os.path.abspath("./static"))
+
+@bottle.route("/<filename:re:.*png|.*ico|.*webmanifest>")
+def serve_icon(filename):
+    return bottle.static_file(filename, root=os.path.abspath("./static/favicon"))
 
 @bottle.get("/<id>")
 @bottle.post("/<id>/create_char")
 @session
 @get_game
 def create_char(session, game):
-    start = time.time()
-    try:
-        player = game.try_get(session)
-        if player is not None:
-            return bottle.redirect("/{:x}/lobby".format(game.id))
+    player = game.try_get(session)
+    if player is not None:
+        return bottle.redirect("/{:x}/lobby".format(game.id))
 
-        if bottle.request.method == "GET":            
-            return bottle.template("create_char_page", game=game)
-        
-        if bottle.request.method == "POST":
-            form = bottle.request.forms
-            team = form.get("team")
-            if team is None:
-                return bottle.abort(500, "Missing team id")
-            if team not in game.teams:
-                return bottle.abort(500, "Invalid team")
+    if bottle.request.method == "GET":            
+        return bottle.template("create_char_page", game=game)
+    
+    if bottle.request.method == "POST":
+        form = bottle.request.forms
+        team = form.get("team")
+        if team is None:
+            return bottle.abort(500, "Missing team id")
+        if team not in game.teams:
+            return bottle.abort(500, "Invalid team")
 
-            name = form.get("char_name")
-            char_cls = form.get("cls")
+        name = form.get("char_name")
+        char_cls = form.get("cls")
 
-            player = None
+        player = None
 
-            try:
-                player = game.create_player(name, char_cls, session, team)
-            except ValueError as e:
-                return bottle.abort(500, e.args[0])
-        
-            return bottle.redirect("/{:x}/lobby".format(game.id))
-    finally:
-        print(time.time() - start)
+        try:
+            player = game.create_player(name, char_cls, session, team)
+        except ValueError as e:
+            return bottle.abort(500, e.args[0])
+    
+        return bottle.redirect("/{:x}/lobby".format(game.id))
 
 
 @bottle.post("/create")
@@ -272,10 +274,6 @@ def status(session, game):
 @bottle.view("error")
 def display_error(error):
     return {"request":bottle.request, "e":error, "DEBUG":bottle.DEBUG} 
-
-@bottle.route("/static/<filename>")
-def serve_static(filename):
-    return bottle.static_file(filename, root=os.path.abspath("./static"))
 
 def main():
     bottle.run(host="0.0.0.0")
