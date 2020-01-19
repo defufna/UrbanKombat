@@ -88,7 +88,9 @@ s</span>
         </td>
         <td class="gp">
             <div class="gt">You are inside <b>Hildebrand Mall</b>. Trails of looted debris litter the floors and
-                escalators. The building has been quite strongly barricaded. Also here is              
+                escalators. The building has been quite strongly barricaded. \\
+%if len(humans) > 0:
+Also here is              
 %for last,player in detect_last(humans):
 <a href="#" class="\\
 %if player.team == team:
@@ -109,6 +111,7 @@ con2\\
     %else:
 .\\
     %end
+%end
 %end
 <br><br>A portable generator has been set up here. It is running.
                 <br><br>Somebody has spraypainted <i>death to fascism, freedom to the people</i> onto a wall.\\

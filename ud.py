@@ -778,7 +778,7 @@ class Game:
         if len(surviving_teams) == 1:
             self.finished = True
             self.victory_status = VictoryStatus(VICTORY, next(iter(surviving_teams)))
-        elif len(surviving_teams) == 0 or all(player.ap == 0 for player in self.players.values()):
+        elif len(surviving_teams) == 0 or all(player.ap == 0 for player in self.players.values() if not player.dead):
             self.finished = True
             self.victory_status = VictoryStatus(DRAW, None)
         

@@ -19,6 +19,8 @@ other\\
 {{count(same_team_zombies)}} of them from your horde\\
 %end
 .
+%end
+%if zombie_count > 0:
 You recognise \\
 %for last, player in detect_last(zombies):
 <a href="#" class="\\
